@@ -19,7 +19,6 @@ class MySocket():
     def shortLink(self, data):
         self.sock.sendall(data)
         rcvdata = self.sock.recv(2048)
-        self.sock.close()
         return rcvdata
 
     def longLink(self, data):
@@ -73,9 +72,16 @@ class MyApp(Tk):
             self.text_recv.insert('0.0', 'please input some thing ip port content')
             return
 
-        sock = MySocket(sip, sport, 0)
-        recvData = sock.shortLink(sctxt)
-        self.text_recv.insert('0.0', recvData)
+        sock = MySocket(sip, sport)
+        if self.flag == '0':
+            recvData = sock.shortLink(sctxt)
+            self.sock.close()
+            self.text_recv.insert('0.0', recvData)
+        else:
+            while 1:
+                recvData = sock.shortLink(sctxt)
+                self.text_recv.insert('0.0', recvData)
+            self.sock.close()
 
 if __name__ == '__main__':
     MyApp().mainloop()
