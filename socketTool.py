@@ -1,41 +1,51 @@
 #!/usr/bin/env python
 #coding=utf-8
-__author__ = 'wangxiaochuang from China'
-__date__ = '2015-10-16'
+__author__ = {'name':'wangxiaochuang',
+              'mail':'jackstrawxiaoxin@gmail.com',
+              'QQ':'932698529',
+              'created':'2015-10-16'}
 
-
-import socket
-import Tkinter
-from Tkinter import Frame, Button, Text, Entry, Label, Tk
+import pdb
+import socket, Tkinter
+from Tkinter import Toplevel, Frame, Button, Text, Entry, Label, Tk, Radiobutton, Menubutton, Menu, IntVar
 
 class MySocket():
-    def __init__(self, ip, port, flag):
+    def __init__(self):
+        '''
         self.ip = ip
         self.port = int(port)
-        self.flag = flag
+        '''
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((self.ip, self.port))
 
-    def shortLink(self, data):
+    def sendData(self, data):
         self.sock.sendall(data)
         rcvdata = self.sock.recv(2048)
         return rcvdata
 
-    def longLink(self, data):
-        self.sock.sendall(data)
-        rcvdata = self.sock.recv(2048)
-        return rcvdata
-    
 class MyApp(Tk):
+    def open_file(self):
+        filewin = Tkinter.Toplevel()
+        button = Button(filewin, text='do nothing button')
+        button.pack()
+
     def __init__(self):
         Tk.__init__(self)
         self.title('socket tools in *nix')
 
         #Frame setting
-        frame_left = Frame(width=170, height=400)
-        frame_right_top = Frame(width=380, height=200, bg='white')
-        frame_right_center = Frame(width=380, height=180, bg='white')
-        frame_right_bottom = Frame(width=380, height=40)
+        frame_mbar = Frame(self, relief=Tkinter.RAISED, borderwidth=2)
+        frame_left = Frame(self)
+        frame_right_top = Frame(self)
+        frame_right_center = Frame(self)
+        frame_right_bottom = Frame(self, height=40)
+
+        #menu
+        mbFile = Menubutton(frame_mbar, text='File', relief=Tkinter.RAISED, padx=6, pady=6)
+        mbFile.pack(side='left', padx=2)
+        mbFile.menu = Menu(mbFile)
+        mbFile.menu.add_command(label='open', command=self.open_file)
+        mbFile.menu.entryconfig(0, state=Tkinter.DISABLED)
+        mbFile['menu'] = mbFile.menu
 
         #Button and Text
         self.text_send = Text(frame_right_top)
@@ -44,45 +54,66 @@ class MyApp(Tk):
         self.text_recv.grid()
 
         #set ip and port
-        Label(frame_left, text='ip').grid()
-        self.ip = Entry(frame_left)
-        self.ip.grid()
-        Label(frame_left, text='port').grid()
-        self.port = Entry(frame_left)
-        self.port.grid();
+        ipf = Frame(frame_left, padx=10, pady=15)
+        Label(ipf, text='ip', relief=Tkinter.RAISED, borderwidth=2, width=8).pack(side='left')
+        self.ip = Entry(ipf)
+        self.ip.pack(side='left')
+        ipf.pack()
+
+        portf = Frame(frame_left, padx=10, pady=5)
+        Label(portf, text='port', relief=Tkinter.RAISED, borderwidth=2, width=8).pack(side='left')
+        self.port = Entry(portf)
+        self.port.pack(side='left')
+        portf.pack()
+        #set short and long link
+        linkf = Frame(frame_left, padx=10, pady=15, relief=Tkinter.SUNKEN, borderwidth=2)
+        self.flag = IntVar()
+        Radiobutton(linkf, text="短链接", 
+                value=0, variable=self.flag, 
+                relief=Tkinter.RAISED)\
+                        .pack(side=Tkinter.LEFT)
+        Radiobutton(linkf, text="长链接", 
+                value=1, variable=self.flag, 
+                relief=Tkinter.RAISED)\
+                        .pack(side=Tkinter.LEFT)
+        linkf.pack()
 
         button_senddata = Button(frame_right_bottom, text='send', command=self.send).grid(sticky=Tkinter.W)
 
         #Grid
-        frame_left.grid(row=0, column=0, rowspan=3, padx=2, pady=2)
-        frame_right_top.grid(row=0, column=1, padx=2, pady=5)
-        frame_right_center.grid(row=1, column=1, padx=2, pady=5)
-        frame_right_bottom.grid(row=2, column=1)
-
-        frame_right_top.grid_propagate(0)
-        frame_right_center.grid_propagate(0)
-        frame_right_bottom.grid_propagate(0)
-
+        frame_mbar.pack(side='top', fill=Tkinter.X)
+        frame_left.pack(side='left', anchor=Tkinter.N)
+        frame_right_top.pack(side='top')
+        frame_right_center.pack(side='top')
+        frame_right_bottom.pack(side='top', anchor=Tkinter.E)
+        
     def send(self):
         sip = self.ip.get()
         sport = self.port.get()
+        flag = self.flag.get()
         sctxt = self.text_send.get('0.0', Tkinter.END)
+        recvData = ''
 
-        if sip == '' or sport == '' or sctxt == '':
-            self.text_recv.insert('0.0', 'please input some thing ip port content')
+        if sip == '' or sport =='' or sctxt == '':
+            self.text_recv.insert('0.0', 'please input data what you want to send with specific addr')
             return
 
-        sock = MySocket(sip, sport)
-        if self.flag == '0':
-            recvData = sock.shortLink(sctxt)
-            self.sock.close()
-            self.text_recv.insert('0.0', recvData)
-        else:
-            while 1:
-                recvData = sock.shortLink(sctxt)
-                self.text_recv.insert('0.0', recvData)
-            self.sock.close()
+        #pdb.set_trace()
+        if not hasattr(self,'conn'):
+            self.conn = MySocket()
+            self.conn.sock.connect((sip, int(sport)))
 
+        if flag == 0:
+            conn = MySocket()
+            conn.sock.connect((sip, int(sport)))
+
+            recvData = conn.sendData(sctxt)
+            self.text_recv.insert('0.0', recvData)
+            conn.sock.close()
+        else:
+            recvData = self.conn.sendData(sctxt)
+            self.text_recv.insert('0.0', recvData)
+            
 if __name__ == '__main__':
     MyApp().mainloop()
 
