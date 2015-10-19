@@ -33,19 +33,20 @@ class MyApp(Tk):
         self.title('socket tools in *nix')
 
         #Frame setting
-        frame_mbar = Frame(self, relief=Tkinter.RAISED, borderwidth=2)
+        top_mbar = self.winfo_toplevel()
+
         frame_left = Frame(self)
         frame_right_top = Frame(self)
         frame_right_center = Frame(self)
         frame_right_bottom = Frame(self, height=40)
 
         #menu
-        mbFile = Menubutton(frame_mbar, text='File', relief=Tkinter.RAISED, padx=6, pady=6)
-        mbFile.pack(side='left', padx=2)
-        mbFile.menu = Menu(mbFile)
-        mbFile.menu.add_command(label='open', command=self.open_file)
-        mbFile.menu.entryconfig(0, state=Tkinter.DISABLED)
-        mbFile['menu'] = mbFile.menu
+        mbFile = Menu(top_mbar)
+        top_mbar['menu'] = mbFile
+        mbFile.subMenu = Menu(mbFile)
+        mbFile.add_cascade(label='File', menu=mbFile.subMenu)
+        mbFile.subMenu.add_command(label='open', command=self.open_file)
+        mbFile.subMenu.entryconfig(0, state=Tkinter.DISABLED)
 
         #Button and Text
         self.text_send = Text(frame_right_top)
@@ -81,7 +82,6 @@ class MyApp(Tk):
         button_senddata = Button(frame_right_bottom, text='send', command=self.send).grid(sticky=Tkinter.W)
 
         #Grid
-        frame_mbar.pack(side='top', fill=Tkinter.X)
         frame_left.pack(side='left', anchor=Tkinter.N)
         frame_right_top.pack(side='top')
         frame_right_center.pack(side='top')
