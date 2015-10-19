@@ -45,13 +45,14 @@ class MyApp(Tk):
         top_mbar['menu'] = mbFile
         mbFile.subMenu = Menu(mbFile)
         mbFile.add_cascade(label='File', menu=mbFile.subMenu)
-        mbFile.subMenu.add_command(label='open', command=self.open_file)
+        mbFile.subMenu.add_command(label='Open', command=self.open_file)
+        mbFile.subMenu.add_command(label='Exit', command=top_mbar.quit)
         mbFile.subMenu.entryconfig(0, state=Tkinter.DISABLED)
 
         #Button and Text
-        self.text_send = Text(frame_right_top)
+        self.text_send = Text(frame_right_center)
         self.text_send.grid()
-        self.text_recv = Text(frame_right_center)
+        self.text_recv = Text(frame_right_top)
         self.text_recv.grid()
 
         #set ip and port
@@ -99,9 +100,6 @@ class MyApp(Tk):
             return
 
         #pdb.set_trace()
-        if not hasattr(self,'conn'):
-            self.conn = MySocket()
-            self.conn.sock.connect((sip, int(sport)))
 
         if flag == 0:
             conn = MySocket()
@@ -111,6 +109,9 @@ class MyApp(Tk):
             self.text_recv.insert('0.0', recvData)
             conn.sock.close()
         else:
+            if not hasattr(self,'conn'):
+                self.conn = MySocket()
+                self.conn.sock.connect((sip, int(sport)))
             recvData = self.conn.sendData(sctxt)
             self.text_recv.insert('0.0', recvData)
             
